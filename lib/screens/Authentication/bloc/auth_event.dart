@@ -1,0 +1,7 @@
+part of 'auth_bloc.dart';
+
+@immutable
+sealed class AuthEvent {}
+class googleAuthButtonClicked extends AuthEvent{
+  
+}
