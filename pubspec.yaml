@@ -47,6 +47,8 @@ dependencies:
   firebase_auth: ^4.17.8
   cloud_firestore: ^4.15.8
   fluttertoast: ^8.2.5
+  firebase_messaging: 
+  flutter_local_notifications: 
   
 
 dev_dependencies:
