@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expensemate/screens/Home/bloc/home_bloc.dart';
 import 'package:expensemate/screens/Home/core/Firestore.dart';
 import 'package:expensemate/screens/LoadingScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
@@ -12,62 +14,62 @@ class editItemScreen extends StatefulWidget {
   final String amount;
   final String date;
   final String color;
-  const editItemScreen(this.Id, this.categoryName, this.amount, this.date,this.color, {super.key});
+  const editItemScreen(
+      this.Id, this.categoryName, this.amount, this.date, this.color,
+      {super.key});
 
   @override
   State<editItemScreen> createState() => _editItemScreenState();
 }
 
 class _editItemScreenState extends State<editItemScreen> {
- 
- String categoryname='';
- String Amount1='';
- String selectedColor1='';
+  String categoryname = '';
+  String Amount1 = '';
+  String selectedColor1 = '';
   FocusNode name = FocusNode();
   FocusNode Amount_focus = FocusNode();
 
   FocusNode categoryName_focus = FocusNode();
 
   bool AmountVisible = false;
- 
+
   bool IsColor = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  
 
-FirebaseFirestore db = FirebaseFirestore.instance;
-Future<void> updateData(String categoryName, String amount, String date, String selectedColor,String Id) {
-   FirebaseAuth auth = FirebaseAuth.instance;
+  // FirebaseFirestore db = FirebaseFirestore.instance;
+  // Future<void> updateData(String categoryName, String amount, String date,
+  //     String selectedColor, String Id) {
+  //   FirebaseAuth auth = FirebaseAuth.instance;
 
-    // Get the current user
-    User? userauth = auth.currentUser;
-    // [START get_started_add_data_1]
-    // Create a new user with a first and last name
-    final user = <String, dynamic>{
-     
-      "date":date,
-      "category name": categoryName,
-      "Amount": amount,
-      "Color": selectedColor,
-
-    };
-  return db.collection('${userauth!.email}')
-      .doc(Id)
-      .update(user)
-      .then((value) => print("User Updated"))
-      .catchError((error) => print("Failed to update user: $error"));
-}
-
+  //   // Get the current user
+  //   User? userauth = auth.currentUser;
+  //   // [START get_started_add_data_1]
+  //   // Create a new user with a first and last name
+  //   final user = <String, dynamic>{
+  //     "date": date,
+  //     "category name": categoryName,
+  //     "Amount": amount,
+  //     "Color": selectedColor,
+  //   };
+  //   return db
+  //       .collection('${userauth!.email}')
+  //       .doc(Id)
+  //       .update(user)
+  //       .then((value) => print("User Updated"))
+  //       .catchError((error) => print("Failed to update user: $error"));
+  // }
 
   String? _validateInput(String? value, {String? fieldName}) {
     if (fieldName == 'color') {
-      if (value ==null) {
+      if (value == null) {
         return 'Please select a valid Color';
       }
     }
     return null;
   }
-   DateTime _selectedDate = DateTime.now(); 
-Future<void> _selectDate(BuildContext context) async {
+
+  DateTime _selectedDate = DateTime.now();
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -75,191 +77,216 @@ Future<void> _selectDate(BuildContext context) async {
       lastDate: DateTime.now(),
     );
 
-    if (pickedDate!= null && pickedDate!= _selectedDate) {
+    if (pickedDate != null && pickedDate != _selectedDate) {
       setState(() {
         _selectedDate = pickedDate;
-       
-
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
-     String categoryName = widget.categoryName;
-  String Amount = widget.amount;
-  String date=widget.date;
+    String categoryName = widget.categoryName;
+    String Amount = widget.amount;
+    String date = widget.date;
 
-  String SelectedColor=widget.color;
+    String SelectedColor = widget.color;
     //List<String> ColorList = ["Blue", "black", "red", "yellow"];
-
+HomeBloc _homeBloc=HomeBloc(FirebaseAuth.instance);
     // String selectedValue='Blue';
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.keyboard_arrow_left_outlined,
-            size: 30.r,
-            color: Colors.white,
-          ),
-        ),
-        title: Row(
-          children: [
-            Hero(
-              tag: 'edit',
-              child: Icon(Icons.edit,
-              color: Colors.white,),
-            ),
-            SizedBox(
-              width: 5.w,
-            ),
-            Text(
-              "Edit",
-              style: TextStyle(color: Colors.white, fontSize: 25.sp),
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 150.h,
+    return BlocConsumer<HomeBloc, HomeState>(
+      listener: (context, state) {
+     if(state is UpdateButtonNavigationState){
+          if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          // Proceed with saving the data
+                          print('Category Name: $categoryName');
+                          print('Amount: $Amount');
+                        }
+                         Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    LoadingScreen('EditElementToHome')));
+     }
+      },
+      bloc: _homeBloc,
+      listenWhen: (previous, current) => current is HomeActionState,
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.blue,
+            leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(
+                Icons.keyboard_arrow_left_outlined,
+                size: 30.r,
+                color: Colors.white,
               ),
-              /* Padding(
-                 padding:  EdgeInsets.symmetric(horizontal: 18.w,vertical: 8.h
-                 ),
-                 child: GestureDetector(
-                    
-                    onTap: () => _selectDate(context),
-                    child: Container(
-                      width: double.infinity,
-                      height: 40.h,
-                      decoration: BoxDecoration(
-                       
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(
-                          color: Colors.black
-                        )
-                  
-                      ),
-                      child: Padding(
-                        padding:  EdgeInsets.all(8.0.r),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            
-                            Icon(Icons.date_range),
-                            SizedBox(
-                              width: 5.w,
-                            ),
+            ),
+            title: Row(
+              children: [
+                Hero(
+                  tag: 'editfromhome',
+                  child: Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(
+                  width: 5.w,
+                ),
+                Text(
+                  "Edit",
+                  style: TextStyle(color: Colors.white, fontSize: 25.sp),
+                ),
+              ],
+            ),
+          ),
+          body: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 150.h,
+                  ),
+                  /* Padding(
+                     padding:  EdgeInsets.symmetric(horizontal: 18.w,vertical: 8.h
+                     ),
+                     child: GestureDetector(
                         
-                            Text('${DateFormat.yMMMd().format(_selectedDate)}'),
-                          ],
+                        onTap: () => _selectDate(context),
+                        child: Container(
+                          width: double.infinity,
+                          height: 40.h,
+                          decoration: BoxDecoration(
+                           
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: Colors.black
+                            )
+                      
+                          ),
+                          child: Padding(
+                            padding:  EdgeInsets.all(8.0.r),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                
+                                Icon(Icons.date_range),
+                                SizedBox(
+                                  width: 5.w,
+                                ),
+                            
+                                Text('${DateFormat.yMMMd().format(_selectedDate)}'),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
+                   ),*/
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: Text("Category Name"),
+                  ),
+                  buildTextFormField('categoryName', 'Enter category Name',
+                      categoryName_focus, categoryName),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: Text("Amount"),
+                  ),
+                  buildTextFormField(
+                      'Amount', 'Enter Amount', Amount_focus, Amount),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 18.w),
+                    child: Text("Select Color"),
+                  ),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 18.w, vertical: 5.h),
+                    child: DropdownButtonFormField<String>(
+                      value: SelectedColor,
+                      items: ['Red', 'Blue', 'Yellow', 'Orange', 'Green']
+                          .map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  color: (value == 'Red')
+                                      ? Colors.red
+                                      : (value == 'Blue')
+                                          ? Colors.blue
+                                          : (value == 'Yellow')
+                                              ? Colors.yellow[600]
+                                              : (value == 'Orange')
+                                                  ? Colors.orange
+                                                  : (value == 'Green')
+                                                      ? Colors.green
+                                                      : null,
+                                ),
+                                width: 10.w,
+                                height: 10.h,
+                              ),
+                              SizedBox(
+                                width: 5.w,
+                              ),
+                              Text(value),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedColor1 = newValue!;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Select Color',
+                        prefixIcon: Icon(Icons.color_lens),
+                      ),
+                      validator: (value) =>
+                          _validateInput(value, fieldName: 'color'),
                     ),
                   ),
-               ),*/
-               Padding(
-                 padding:  EdgeInsets.symmetric(horizontal: 18.w),
-                 child: Row(
-                   children: [
-                     Text("Category Name"),
-                   ],
-                 ),
-               ),
-              buildTextFormField(
-                  'categoryName', 'Enter category Name', categoryName_focus,categoryName),
-                  Padding(
-                 padding:  EdgeInsets.symmetric(horizontal: 18.w),
-                 child: Row(
-                   children: [
-                     Text("Amount"),
-                   ],
-                 ),
-               ),
-              buildTextFormField('Amount', 'Enter Amount', Amount_focus,Amount),
-              Padding(
-                 padding:  EdgeInsets.symmetric(horizontal: 18.w),
-                 child: Row(
-                   children: [
-                     Text("Select Color"),
-                   ],
-                 ),
-               ),
-              Padding(
-                padding:  EdgeInsets.symmetric(horizontal: 18.w,vertical: 5.h),
-                child: DropdownButtonFormField<String>(
-                  value: SelectedColor,
-                  items: ['Red', 'Blue', 'Yellow','Orange','Green'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.r),
-                               color:(value=='Red')?Colors.red:
-                               (value=='Blue')?Colors.blue:
-                               (value=='Yellow')? Colors.yellow[600]:
-                               (value=='Orange')?Colors.orange:
-                                (value=='Green')?Colors.green:null,
-                            ),
-                            width: 10.w,
-                            height: 10.h,
-                           
-                          ),
-                          SizedBox(
-                            width: 5.w,
-                          ),
-
-                          Text(value),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      
-                      selectedColor1=newValue!;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Select Color',
-                    prefixIcon: Icon(Icons.color_lens),
-                  ),
-                  validator: (value) =>
-                      _validateInput(value, fieldName: 'color'),
-                ),
+                  GestureDetector(
+                      onTap: () {
+                         if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          // Proceed with saving the data
+                          print('Category Name: $categoryName');
+                          print('Amount: $Amount');
+                        }
+                    print("Ges");
+                        _homeBloc.add(UpdateButtonNavigationEvent(
+                          widget.Id,
+ categoryname,
+                            Amount1==''?Amount:Amount1,
+                            date,
+                            (selectedColor1 == '')
+                                ? SelectedColor
+                                : selectedColor1,
+                            
+                        ));
+                        
+                        print(categoryname);
+                       
+                      },
+                      child: Button()),
+                ],
               ),
-              GestureDetector(
-                  onTap: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      // Proceed with saving the data
-                      print('Category Name: $categoryName');
-                      print('Amount: $Amount');
-                    }
-                    updateData(categoryname, Amount1, date, (selectedColor1=='')?SelectedColor:selectedColor1,widget.Id);
-                   print(categoryname);
-                    Navigator.push(context,MaterialPageRoute(
-                      builder: (context)=>LoadingScreen('EditElementToHome')));
-                    
-                    
-                  },
-                  child: Button()),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -282,16 +309,17 @@ Future<void> _selectDate(BuildContext context) async {
     );
   }
 
-  Widget buildTextFormField(String key, String hintText, FocusNode focus_Node, String initialValue) {
+  Widget buildTextFormField(
+      String key, String hintText, FocusNode focus_Node, String initialValue) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 18.w),
       child: Container(
-        width: 358.w,
+        width: double.infinity,
         // height:40.h ,
         decoration: const BoxDecoration(),
         child: TextFormField(
           initialValue: initialValue,
-          
+
           focusNode: focus_Node,
           keyboardType:
               (key == 'Amount') ? TextInputType.number : TextInputType.name,
@@ -338,7 +366,7 @@ Future<void> _selectDate(BuildContext context) async {
               if (key == 'categoryName') {
                 categoryname = value!;
               } else if (key == 'Amount') {
-                 Amount1 = value!;
+                Amount1 = value!;
               }
             });
           },

@@ -1,6 +1,7 @@
 import 'package:expensemate/screens/Authentication/core/AuthFunction.dart';
 import 'package:expensemate/screens/Home/bloc/home_bloc.dart';
 import 'package:expensemate/screens/LoadingScreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,20 +15,20 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  final _homeBloc=HomeBloc();
+  HomeBloc _homeBloc = HomeBloc(FirebaseAuth.instance);
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<HomeBloc, HomeState>(
       bloc: _homeBloc,
       listenWhen: (previous, current) => current is HomeActionState,
-      buildWhen: (previous, current) => current is !HomeActionState,
+      buildWhen: (previous, current) => current is! HomeActionState,
       listener: (context, state) {
-        if(state is LogOutState){
-           signOut();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => LoadingScreen('HometoAuth')));
+        if (state is LogOutState) {
+          signOut();
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => LoadingScreen('HometoAuth')));
         }
         // TODO: implement listener
       },
@@ -44,7 +45,7 @@ class _SettingPageState extends State<SettingPage> {
               padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
               child: GestureDetector(
                 onTap: () {
-                 _homeBloc.add(LogOutEvent());
+                  _homeBloc.add(LogOutEvent());
                 },
                 child: Container(
                   child: Row(
@@ -86,7 +87,9 @@ class _SettingPageState extends State<SettingPage> {
                 Text(
                   title,
                   style:
-                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w100),
+                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w100,
+                      color: Colors.black
+                      ),
                 ),
               ],
             ),
